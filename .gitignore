@@ -1,0 +1,7 @@
+.vscode/*
+!.vscode/setting.json
+.DS_Store
+human-faces/*
+anime-faces/*
+simpsons-faces/*
+

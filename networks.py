@@ -9,6 +9,7 @@ class DCGAN(object):
     def __init__(self, sess, args):
         self.sess = sess
         self.phase = args.phase
+        
         self.checkpoint_dir = args.checkpoint_dir
         self.result_dir = args.result_dir
         self.log_dir = args.log_dir
@@ -17,7 +18,8 @@ class DCGAN(object):
         self.epoch = args.epoch
         self.iteration = args.iteration
         
-        self.lr = args.lr
+        self.g_lr = args.g_lr
+        self.d_lr = args.d_lr
 
         
         self.batch_size = args.batch_size
@@ -29,13 +31,17 @@ class DCGAN(object):
         
         self.ch = args.ch
         
-        
+        self.gan_type = args.gan_type
+        self.z_dim = args.z_dim
         
         self.c_dim = 3
         self.data = load_data(dataset_name=self.dataset_name)
         self.custom_dataset = True
 
         self.dataset_num = len(self.data)
+        
+        self.sample_dir = os.path.join(self.sample_dir, self.model_dir)
+        check_folder(self.sample_dir)
         
         print()
 
@@ -46,8 +52,13 @@ class DCGAN(object):
         print("# epoch : ", self.epoch)
         print("# iteration per epoch : ", self.iteration)
 
+        print("##### Generator #####")
+        print("# learning rate : ", self.g_learning_rate)
+
         print()
-        print("# learning rate : ", self.lr)
+
+        print("##### Discriminator #####")
+        print("# learning rate : ", self.d_learning_rate)
             
     def gernertaor(self, x_init, reuse=False, scope="gernerator"):
         channel = self.ch
@@ -98,30 +109,56 @@ class DCGAN(object):
         
         
     def loss():
-        
+        loss
             
         
     def build_model(self):
-        if self.phase == 'train' :
-            self.lr = tf.placeholder(tf.float32, name='learning_rate')
-            
-            image_Data_Class = ImageData(self.img_size, self.img_ch)
-            
-            train = tf.data.Dataset.from_tensor_slices(self.train_dataset)
-            
-            gpu_device = '/gpu:0'
-            train = train.apply(shuffle_and_repeat(self.dataset_num)).apply(map_and_batch(Image_Data_Class.image_processing, self.batch_size, num_parallel_batches=16, drop_remainder=True)).apply(prefetch_to_device(gpu_device, None))
+        """ Graph Input """
+        # images
+        Image_Data_Class = ImageData(self.img_size, self.c_dim, self.custom_dataset)
+        inputs = tf.data.Dataset.from_tensor_slices(self.data)
+        
+        gpu_device = '/gpu:0'
+        inputs = inputs.\
+            apply(shuffle_and_repeat(self.dataset_num)).\
+            apply(map_and_batch(Image_Data_Class.image_processing, self.batch_size, num_parallel_batches=16, drop_remainder=True)).\
+            apply(prefetch_to_device(gpu_device, self.batch_size))
+        
+        inputs_iterator = inputs.make_one_shot_iterator()
 
-            train_iterator = train.make_one_shot_iterator()
-            
-            self.domain = train_iterator.get_next()
-            
+        self.inputs = inputs_iterator.get_next()
+        
+        # noises
+        self.z = tf.random_normal(shape=[self.batch_size, 1, 1, self.z_dim], name='random_z')
+        
+        """ Loss Function """
+        # output of D for real images
+        real_logits = self.discriminator(self.inputs)
+
+        # output of D for fake images
+        fake_images = self.generator(self.z)
+        fake_logits = self.discriminator(fake_images, reuse=True)
+        
+        # get loss for discriminator
+        self.d_loss = discriminator_loss(self.gan_type, real=real_logits, fake=fake_logits)
+
+        # get loss for generator
+        self.g_loss = generator_loss(self.gan_type, fake=fake_logits)
+
+        t_vars = tf.trainable_variables()
+        for var in t_vars: 
+            if 'discriminator' in var.name:
+                d_vars = [var]
+        for var in t_vars: 
+            if 'generator' in var.name:
+                g_vars = [var]
             
     
 
         
     def train():
-    
+        train
+        
     def model_dir(self):
         if self.sn :
             sn = '_sn'
@@ -155,5 +192,8 @@ class DCGAN(object):
             return False, 0
         
     def test(): 
+        test
     
     
+    def generate_image():
+        generate

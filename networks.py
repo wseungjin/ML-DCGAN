@@ -30,18 +30,10 @@ class DCGAN(object):
         self.ch = args.ch
         
         
-        if self.dataset_name == 'mnist':
-            self.c_dim = 1
-            self.data = load_mnist()
-
-        elif self.dataset_name == 'cifar10':
-            self.c_dim = 3
-            self.data = load_cifar10()
-
-        else:
-            self.c_dim = 3
-            self.data = load_data(dataset_name=self.dataset_name)
-            self.custom_dataset = True
+        
+        self.c_dim = 3
+        self.data = load_data(dataset_name=self.dataset_name)
+        self.custom_dataset = True
 
         self.dataset_num = len(self.data)
         
@@ -103,6 +95,10 @@ class DCGAN(object):
             x= fully_connected(x,channel)
             
             return x
+        
+        
+    def loss():
+        
             
         
     def build_model(self):
@@ -118,7 +114,10 @@ class DCGAN(object):
 
             train_iterator = train.make_one_shot_iterator()
             
-            self.domain = train_iterator.get_next()    
+            self.domain = train_iterator.get_next()
+            
+            
+    
 
         
     def train():
